@@ -145,7 +145,7 @@ def get_status():
         if room['usage']:
             summation += sum(room['usage'])
             average_count += len(room['usage'])
-    average_time = summation / average_count
+    average_time = summation / average_count if average_count > 0 else None
 
     return {
         'rooms': room_info,
