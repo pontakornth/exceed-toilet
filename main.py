@@ -1,5 +1,6 @@
 import http
 
+import pymongo
 from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
 import datetime
@@ -78,6 +79,42 @@ def release(room_number: int):
     collection.update_one({'room_number': room_number}, {'$set': time_update, '$push': {'usage': total_time}})
     return {
         'status': 'success'
+    }
+
+
+@app.get('/status/')
+def get_status():
+    """
+    Get status of all rooms.
+
+    Information includes:
+
+        - Status (Occupied, Vacant)
+        - Start Time of each room
+        - Average time
+    """
+    all_rooms = collection.find({'room_number': {'$in': [1, 2, 3]}}).sort('room_number', pymongo.ASCENDING)
+    summation = 0
+    average_count = 0
+    room_info = []
+    for room in all_rooms:
+        # If the room is used
+        room_info.append({
+            'roomNumber': room['room_number'],
+            'status': 'Occupied' if room['is_occupied'] else 'Vacant',
+            'startTime': room['start_time'],
+            'lastTime': room['end_time'],
+            'diffTime': round((room['end_time'] - room['start_time']).total_seconds())
+        })
+        if room['usage']:
+            summation += sum(room['usage'])
+            average_count += len(room['usage'])
+    average_time = summation / average_count
+
+    return {
+        'rooms': room_info,
+        'averageTime': average_time,
+        'currentTime': datetime.datetime.utcnow(),
     }
 
 
