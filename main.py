@@ -98,9 +98,11 @@ def get_status():
     average_count = 0
     room_info = []
     for room in all_rooms:
-        # If the room is used
+        # If the room is used once, it calculates the average
+        # Otherwise, it will return None.
         room_info.append({
             'roomNumber': room['room_number'],
+            'average_time': sum(room['usage']) / len(room['usage']) if room['usage'] else None,
             'status': 'Occupied' if room['is_occupied'] else 'Vacant',
             'startTime': room['start_time'],
             'lastTime': room['end_time'],
