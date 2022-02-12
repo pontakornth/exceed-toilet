@@ -2,6 +2,7 @@ import http
 
 import pymongo
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from pymongo import MongoClient
 import datetime
 
@@ -10,26 +11,48 @@ database = client['exceed_project']
 collection = database['Toilet']
 app = FastAPI()
 
-# Example
-toilets = {
-    'room-1': {
-        'room': 1,
-        'isOccupied': False,
-        'startTime': None,
-        'endTime': None
-    },
-    'room-2': {
-        'isOccupied': False,
-        'startTime': None,
-        'endTime': None
-    },
-    'room-3': {
-        'isOccupied': False,
-        'startTime': None,
-        'endTime': None,
+
+class RoomStatusChange(BaseModel):
+    room1: int
+    room2: int
+    room3: int
+
+
+@app.post('/change/')
+def change_status(change: RoomStatusChange):
+    """
+    Change status of toilets.
+    """
+    # It's safe to assume there three toilets.
+    rooms = collection.find({'room_number': {'$in': [1,2,3]}}).sort('room_number', pymongo.ASCENDING)
+    rooms_changes = [change.room1, change.room2, change.room3]
+    current_time = datetime.datetime.utcnow()
+    for room, change in zip(rooms, map(lambda x: True if x else False, rooms_changes)):
+        # If the status changed, then:
+        is_occupied = room['is_occupied']
+        if is_occupied != change:
+            # If occupied then vacant
+            if is_occupied:
+                time_update = {
+                    'is_occupied': False,
+                    'end_time': current_time
+                }
+                total_time = round((current_time - room['start_time']).total_seconds())
+                collection.update_one({'room_number': room['room_number']}, {'$set': time_update, '$push':{
+                    'usage': total_time
+                }})
+            else:
+                # If vacant then occupied
+                time_update = {
+                    'is_occupied': True,
+                    'start_time': current_time
+                }
+                collection.update_one({'room_number': room['room_number']}, {'$set': time_update})
+    return {
+        'status': 'success'
     }
 
-}
+
 
 
 @app.post('/occupy/{room_number}/')
