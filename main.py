@@ -24,7 +24,7 @@ def change_status(change: RoomStatusChange):
     Change status of toilets.
     """
     # It's safe to assume there three toilets.
-    rooms = collection.find({'room_number': {'$in': [1,2,3]}}).sort('room_number', pymongo.ASCENDING)
+    rooms = collection.find({'room_number': {'$in': [1, 2, 3]}}).sort('room_number', pymongo.ASCENDING)
     rooms_changes = [change.room1, change.room2, change.room3]
     current_time = datetime.datetime.utcnow()
     for room, change in zip(rooms, map(lambda x: True if x else False, rooms_changes)):
@@ -38,7 +38,7 @@ def change_status(change: RoomStatusChange):
                     'end_time': current_time
                 }
                 total_time = round((current_time - room['start_time']).total_seconds())
-                collection.update_one({'room_number': room['room_number']}, {'$set': time_update, '$push':{
+                collection.update_one({'room_number': room['room_number']}, {'$set': time_update, '$push': {
                     'usage': total_time
                 }})
             else:
@@ -51,8 +51,6 @@ def change_status(change: RoomStatusChange):
     return {
         'status': 'success'
     }
-
-
 
 
 @app.post('/occupy/{room_number}/')
