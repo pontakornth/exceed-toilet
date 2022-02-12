@@ -30,18 +30,18 @@ class RoomStatusChange(BaseModel):
 
 
 @app.post('/change/')
-def change_status(change: RoomStatusChange):
+def change_status(room_change: RoomStatusChange):
     """
     Change status of toilets.
     """
     # It's safe to assume there three toilets.
     rooms = collection.find({'room_number': {'$in': [1, 2, 3]}}).sort('room_number', pymongo.ASCENDING)
-    rooms_changes = [change.room1, change.room2, change.room3]
+    rooms_changes = [room_change.room1, room_change.room2, room_change.room3]
     current_time = datetime.datetime.utcnow()
-    for room, change in zip(rooms, map(lambda x: True if x else False, rooms_changes)):
+    for room, room_change in zip(rooms, map(lambda x: True if x else False, rooms_changes)):
         # If the status changed, then:
         is_occupied = room['is_occupied']
-        if is_occupied != change:
+        if is_occupied != room_change:
             # If occupied then vacant
             if is_occupied:
                 time_update = {
