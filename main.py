@@ -126,7 +126,7 @@ def get_status():
         room_info.append({
             'roomNumber': room['room_number'],
             'averageTime': sum(room['usage']) / len(room['usage']) if room['usage'] else None,
-            'status': 'Occupied' if room['is_occupied'] else 'Vacant',
+            'status': room['is_occupied'],
             'startTime': room['start_time'],
             'lastTime': room['end_time'],
             'diffTime': round((room['end_time'] - room['start_time']).total_seconds())
