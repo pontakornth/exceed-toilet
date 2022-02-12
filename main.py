@@ -120,6 +120,7 @@ def get_status():
     summation = 0
     average_count = 0
     room_info = []
+    current_time = datetime.datetime.utcnow()
     for room in all_rooms:
         # If the room is used once, it calculates the average
         # Otherwise, it will return None.
@@ -129,7 +130,8 @@ def get_status():
             'status': room['is_occupied'],
             'startTime': room['start_time'],
             'lastTime': room['end_time'],
-            'diffTime': round((room['end_time'] - room['start_time']).total_seconds())
+            # Diff time is time from current time to start
+            'diffTime': round((current_time - room['start_time']).total_seconds())
         })
         if room['usage']:
             summation += sum(room['usage'])
@@ -139,7 +141,7 @@ def get_status():
     return {
         'rooms': room_info,
         'averageTime': average_time,
-        'currentTime': datetime.datetime.utcnow(),
+        'currentTime': current_time,
     }
 
 
